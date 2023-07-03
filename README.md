@@ -3,7 +3,18 @@
 Example project to reproduce an issue in Slint's C++ with GLX failing to
 provide an opengl context or window surface on Linux.
 
-Based off of the KDAB MECAPS research project.
+This is a small subsection of an early patch to a KDAB R+D project.
+
+The output of `my_application` should be:
+
+```txt
+thread '<unnamed>' panicked at 'called `Result::unwrap()` on an `Err` value: Other("Skia OpenGL Renderer: Failed to create OpenGL Window Surface: provided native display isn't supported")', api/cpp/platform.rs:316:10
+```
+
+## Additional Issues
+
+- Event loop is not complete so the window will immediately close if created
+successfully, while the process will hang.
 
 ## Building
 

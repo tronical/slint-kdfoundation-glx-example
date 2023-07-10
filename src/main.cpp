@@ -8,7 +8,7 @@ static bool windowVisible = true;
 
 /// Create a custom platform which serves to wrap the WindowAdapter and return
 /// it when slint queries it internally. Register said platform with slint.
-void connectSlintToApp()
+slint::ComponentHandle<AppWindow> connectSlintToApp()
 {
 	auto platform = std::make_unique<KDSlintPlatform>();
 	auto windowAdapter = std::make_unique<LinuxWindowAdapter>();
@@ -38,12 +38,14 @@ void connectSlintToApp()
 		[&] { gui->set_counter(gui->get_counter() + 1); });
 
 	gui->show();
+
+	return std::move(gui);
 }
 
 auto main() -> int
 {
 	KDGui::GuiApplication app;
-	connectSlintToApp();
+	auto gui = connectSlintToApp();
 
 	while (windowVisible) {
 		app.processEvents();

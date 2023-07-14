@@ -3,6 +3,7 @@
 
 // linux specific stuff
 #include <KDGui/platform/linux/xcb/linux_xcb_platform_integration.h>
+#include <KDGui/platform/linux/wayland/linux_wayland_platform_integration.h>
 #include <xcb/xproto.h>
 
 namespace slint_platform = slint::experimental::platform;
@@ -19,10 +20,9 @@ LinuxWindowAdapter::LinuxWindowAdapter() noexcept
 	auto *platformIntegration =
 		KDGui::GuiApplication::instance()->guiPlatformIntegration();
 
-	{
-		auto *xcbLinuxPlatformIntegration =
+	if (auto *xcbLinuxPlatformIntegration =
 			dynamic_cast<KDGui::LinuxXcbPlatformIntegration *>(
-				platformIntegration);
+				platformIntegration)) {
 		auto *xcbPlatformWindow = dynamic_cast<KDGui::LinuxXcbPlatformWindow *>(
 			m_kdWindow->platformWindow());
 
@@ -49,9 +49,22 @@ LinuxWindowAdapter::LinuxWindowAdapter() noexcept
 			xcbVisual = windowAttributesReply->visual;
 		}
 
-		m_renderer.emplace(slint_platform::NativeWindowHandle::from_x11(
+		m_renderer.emplace(slint_platform::NativeWindowHandle::from_x11_xcb(
 							   xcbWindowHandle, xcbVisual, xcbConnection, 0),
 						   slintSize);
+	} else if (auto *waylandLinuxPlatformIntegration =
+				   dynamic_cast<KDGui::LinuxWaylandPlatformIntegration *>(
+					   platformIntegration)) {
+		auto *waylandPlatformWindow =
+			dynamic_cast<KDGui::LinuxWaylandPlatformWindow *>(
+				m_kdWindow->platformWindow());
+
+		auto *display = waylandLinuxPlatformIntegration->display();
+		auto *surface = waylandPlatformWindow->handle();
+
+		m_renderer.emplace(
+			slint_platform::NativeWindowHandle::from_wayland(surface, display),
+			slintSize);
 	}
 
 	// attach a resize handler to the KDGui window dimensions, use it to
